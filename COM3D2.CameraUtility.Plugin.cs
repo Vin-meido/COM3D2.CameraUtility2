@@ -11,7 +11,7 @@ using BepInEx.Configuration;
 
 namespace COM3D2.CameraUtility2.Plugin
 {
-    [BepInPlugin("org.bepinex.plugins.com3d2.camerautility2", "CameraUtility2", "1.0.0.0")]
+    [BepInPlugin("org.bepinex.plugins.com3d2.camerautility2", "CameraUtility2", "1.0.0.1")]
     public class CameraUtility : BaseUnityPlugin
     {
         #region Constants
