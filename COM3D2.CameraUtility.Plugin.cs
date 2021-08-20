@@ -94,6 +94,9 @@ namespace COM3D2.CameraUtility2.Plugin
             /// <summary>Guest mode</summary>
             SceneGuestMode = 53,
 
+            /// <summary>CM Yotogi mode</summary>
+            SceneCMYotogi = 67,
+
             /// <sumary>Scout mode</sumary>
             SceneScoutMode = 114
         }
@@ -105,6 +108,7 @@ namespace COM3D2.CameraUtility2.Plugin
             (int)Scene.SceneRecollection,
             (int)Scene.SceneGuestMode,
             (int)Scene.SceneScoutMode,
+            (int)Scene.SceneCMYotogi,
         };
 
         /// <summary>Chu-B Lip で FPS モードを有効化するシーンリスト</summary>
@@ -200,6 +204,8 @@ namespace COM3D2.CameraUtility2.Plugin
             isOVR = GameMain.Instance.VRMode;
             config = new Config.CameraUtilityConfig(Config);
             Instance = this;
+
+            CameraMainPatch.Create();
         }
 
         public void Start()
@@ -517,6 +523,8 @@ namespace COM3D2.CameraUtility2.Plugin
         private void ResetCamera()
         {
             mainCamera.SetFromScriptOnTarget(CameraMainPatch.lastTargetPos, CameraMainPatch.lastRadius, CameraMainPatch.lastAngle);
+            mainCamera.SetTargetOffset(CameraMainPatch.lastTargetOffset, false);
+
             if (!isOVR)
             {
                 SetCameraFOV(defaultFoV);
