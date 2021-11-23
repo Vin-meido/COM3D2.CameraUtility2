@@ -38,7 +38,7 @@ namespace COM3D2.CameraUtility2.Plugin
 
             Instance = this;
             GameObject.DontDestroyOnLoad(this);
-            enableDebug = true;
+            enableDebug = false;
 
             harmony = new Harmony("org.bepinex.plugins.com3d2.camerautility.camerashim");
             harmony.PatchAll(typeof(CameraPatch));
@@ -53,7 +53,7 @@ namespace COM3D2.CameraUtility2.Plugin
             lastRadius = camera.GetDistance();
             lastTargetOffset = Vector3.zero;
 
-            LogDebug($"Reset last camera values:\ntarget:{lastTargetPos}\nangle:{lastAngle}\noffset:{lastTargetOffset}");
+            LogDebug($"Reset last camera values:\ntarget:{lastTargetPos}\nangle:{lastAngle}\nradius:{lastRadius}");
         }
 
         public void OnDestroy()
