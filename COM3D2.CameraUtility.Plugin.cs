@@ -443,12 +443,12 @@ namespace COM3D2.CameraUtility2.Plugin
             Assert.IsNotNull(mainCamera);
             Assert.IsNotNull(mainCameraTransform);
 
-            Vector3 cameraPos = currentMan.HeadTransform.position
-                + currentMan.HeadTransform.up * config.Camera.fpsOffsetUp.Value * fpsForwardOffset
-                + currentMan.HeadTransform.right * config.Camera.fpsOffsetRight.Value
-                + currentMan.HeadTransform.forward * config.Camera.fpsOffsetForward.Value * fpsUpOffset;
-
             var rotation = currentMan.LookRotation;
+
+            Vector3 cameraPos = currentMan.HeadTransform.position
+                + currentMan.LookOffset(
+                    config.Camera.fpsOffsetUp.Value * fpsForwardOffset,
+                    config.Camera.fpsOffsetForward.Value * fpsUpOffset);
 
             if (initial)
             {

@@ -11,10 +11,26 @@ using BepInEx.Configuration;
 
 namespace COM3D2.CameraUtility2.Plugin
 {
-    class Man
+    public static class GameObjectExtensions
+    {
+        public static GameObject FindByNameInChildren(this GameObject parent, string name)
+        {
+            foreach (Transform transform in parent.transform)
+            {
+                if (transform.name.IndexOf(name) > -1)
+                {
+                    return transform.gameObject;
+                }
+            }
+            return null;
+        }
+    }
+
+    public class Man
     {
         private Maid man;
         private GameObject head;
+        private List<Renderer> renderers;
 
         public int ManNumber { get; private set; }
 
@@ -26,12 +42,20 @@ namespace COM3D2.CameraUtility2.Plugin
             }
         }
 
+        Vector3 Forward => man.IsCrcBody ? HeadTransform.right : HeadTransform.up;
+        Vector3 Up => man.IsCrcBody ? HeadTransform.up : HeadTransform.forward;
+
         public Quaternion LookRotation
         {
             get
             {
-                return Quaternion.LookRotation(-this.HeadTransform.up, this.HeadTransform.forward);
+                return Quaternion.LookRotation(-Forward, Up);
             }
+        }
+
+        public Vector3 LookOffset(float forwardOffset, float upOffset)
+        {
+            return (Forward * forwardOffset) + (Up * upOffset);
         }
 
         public bool Visible
@@ -46,7 +70,17 @@ namespace COM3D2.CameraUtility2.Plugin
         {
             set
             {
-                SetRendererEnabled(head, value);
+                if(man.IsCrcBody)
+                {
+                    foreach(var renderer in this.renderers)
+                    {
+                        renderer.enabled = value;
+                    }
+                }
+                else
+                {
+                    SetRendererEnabled(head, value);
+                }
             }
         }
 
@@ -63,17 +97,30 @@ namespace COM3D2.CameraUtility2.Plugin
             if (onlyIfActiveAndVisible && !(man.isActiveAndEnabled && man.Visible)) return null;
             if (!man || !man.body0 || !man.body0.trsHead) return null;
             var head = man.body0.trsHead.gameObject;
-            if (!head) return null;
-            var mhead = FindByNameInChildren(head, "mhead");
-            if (!mhead) return null;
-            var actual_head = FindByNameInChildren(mhead, "ManHead");
 
-            return new Man
+            if (!man.IsCrcBody) {
+                var actual_head = head.FindByNameInChildren("mhead")?.FindByNameInChildren("ManHead");
+                if (actual_head == null) return null;
+
+                return new Man
+                {
+                    man = man,
+                    head = actual_head,
+                    ManNumber = manNumber
+                };
+            }
+            else
             {
-                man = man,
-                head = actual_head,
-                ManNumber = manNumber
-            };
+                var faceBone = head.FindByNameInChildren("SM_Face")?.FindByNameInChildren("Bone_Face");
+                if (faceBone == null) return null;
+                return new Man
+                {
+                    man = man,
+                    head = faceBone,
+                    ManNumber = manNumber,
+                    renderers = FindRenderers(head),
+                };
+            }
         }
 
         public static Man GetVisibleMan(int start=-1)
@@ -110,16 +157,26 @@ namespace COM3D2.CameraUtility2.Plugin
             }
         }
 
-        private static GameObject FindByNameInChildren(GameObject parent, string name)
+        public static List<Renderer> FindRenderers(GameObject go)
         {
-            foreach (Transform transform in parent.transform)
+            var current = new List<Renderer>();
+            FindRenderers(go, current);
+            return current;
+        }
+
+        static void FindRenderers(GameObject go, List<Renderer> current)
+        {
+            var renderer = go.GetComponent<Renderer>();
+            if (renderer != null)
             {
-                if (transform.name.IndexOf(name) > -1)
-                {
-                    return transform.gameObject;
-                }
+                current.Add(renderer);
             }
-            return null;
+
+            for(var i=0; i<go.transform.childCount; i++)
+            {
+                var child = go.transform.GetChild(i).gameObject;
+                FindRenderers(child, current);
+            }
         }
 
         private static void SetRendererEnabled(GameObject obj, bool enabled)
